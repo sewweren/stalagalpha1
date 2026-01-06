@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finland Income Tax Calculator 2025</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; }
+        h1 { text-align: center; color: #333; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; }
+        input, button { padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .results { margin-top: 30px; padding: 20px; background: white; border: 1px solid #ddd; border-radius: 8px; }
+        .results p { margin: 10px 0; font-size: 18px; }
+        .note { font-size: 12px; color: #666; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Finland Tax Estimator 2025</h1>
+    <p style="text-align:center;">Simplified calculator for taxable earned income</p>
+
+    <label for="income">Taxable Income (€):</label>
+    <input type="number" id="income" value="50000" min="0">
+
+    <label for="municipal">Municipal Tax Rate (%):</label>
+    <input type="number" step="0.01" id="municipal" value="7.54">
+    <small>(Average 7.54%; range 4.7–10.9% – check vero.fi for your municipality)</small>
+
+    <label>
+        <input type="checkbox" id="churchCheck"> Church member? (add rate 1–2%)
+    </label>
+    <div id="churchDiv" style="display:none;">
+        <label for="church">Church Tax Rate (%):</label>
+        <input type="number" step="0.01" id="church" value="1.5">
+    </div>
+
+    <button onclick="calculate()">Calculate Tax</button>
+
+    <div class="results" id="results" style="display:none;">
+        <p>National Tax: <strong id="national">€0.00</strong></p>
+        <p>Municipal Tax: <strong id="muni">€0.00</strong></p>
+        <p>Church Tax: <strong id="ch">€0.00</strong></p>
+        <p>Total Estimated Tax: <strong id="total">€0.00</strong></p>
+        <p>Net Income: <strong id="net">€0.00</strong></p>
+    </div>
+
+    <p class="note">Note: Simplified—does not include social contributions, credits, deductions, or broadcasting tax. For accurate taxes, use vero.fi calculator.</p>
+
+    <script>
+        document.getElementById('churchCheck').addEventListener('change', function() {
+            document.getElementById('churchDiv').style.display = this.checked ? 'block' : 'none';
+        });
+
+        function calculate() {
+            const income = parseFloat(document.getElementById('income').value) || 0;
+            const municipalRate = parseFloat(document.getElementById('municipal').value) / 100 || 0;
+            const churchRate = document.getElementById('churchCheck').checked ? 
+                parseFloat(document.getElementById('church').value) / 100 || 0 : 0;
+
+            if (income <= 0) {
+                alert('Please enter a positive income');
+                return;
+            }
+
+            // 2025 National brackets (upper limits)
+            const brackets = [20500, 30500, 50500, 88200, Infinity];
+            const rates = [0, 0.1264, 0.19, 0.3025, 0.34];
+
+            let nationalTax = 0;
+            let prev = 0;
+            for (let i = 0; i < brackets.length; i++) {
+                const bracketSize = Math.min(income - prev, brackets[i] - prev);
+                if (bracketSize > 0) {
+                    nationalTax += bracketSize * rates[i];
+                }
+                if (income <= brackets[i]) break;
+                prev = brackets[i];
+            }
+
+            const municipalTax = income * municipalRate;
+            const churchTax = income * churchRate;
+            const totalTax = nationalTax + municipalTax + churchTax;
+
+            document.getElementById('national').textContent = '€' + nationalTax.toFixed(2);
+            document.getElementById('muni').textContent = '€' + municipalTax.toFixed(2);
+            document.getElementById('ch').textContent = '€' + churchTax.toFixed(2);
+            document.getElementById('total').textContent = '€' + totalTax.toFixed(2);
+            document.getElementById('net').textContent = '€' + (income - totalTax).toFixed(2);
+
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
